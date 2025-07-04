@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": "https://ai-music-recommender.vercel.app/"}}, supports_credentials=True)
 
 @app.route("/")
 def home():
@@ -31,4 +31,4 @@ def recommend():
     # or jsonify({"playlist": playlist}) if you fixed the frontend accordingly
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True,host='0.0.0.0',port=8000)
