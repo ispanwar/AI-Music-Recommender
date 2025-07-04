@@ -1,5 +1,5 @@
 import React from "react";
-function MoodInput({ mood, setMood }) {
+function MoodInput({ mood, setMood, detectedMood }) {
   return (
     <div className="flex flex-col items-center justify-center border-2 border-amber-200 p-4 mt-4 w-full max-w-md mx-auto rounded-lg text-white">
       <textarea
@@ -37,8 +37,14 @@ function MoodInput({ mood, setMood }) {
           🥰
         </button>
       </div>
-      {mood && (
-        <p className="mt-3 text-gray-300 italic">Current mood: {mood}</p>
+      {detectedMood ? (
+        <p className="mt-3 text-green-400 italic">
+          Detected mood: {detectedMood}
+        </p>
+      ) : (
+        mood && (
+          <p className="mt-3 text-gray-300 italic">Current mood: {mood}</p>
+        )
       )}
     </div>
   );

@@ -1,54 +1,59 @@
-import React from "react";
-import axios from "axios";
-export default function AnalyseMood({
-  mood,
-  imageFile,
-  setResult,
-  setLoading,
-}) {
+import React, { useState } from "react";
+import { analyzeMood, getPlaylists } from "../api/api";
+import PlaylistGrid from "./PlaylistGrid";
+
+export default function AnalyseMood({ mood, setLoading, setDetectedMood }) {
+  const [playlists, setPlaylists] = useState([]);
+  const [error, setError] = useState(null);
+
   const handleMood = async () => {
-    if (!mood || !imageFile) {
-      alert("Please enter your mood and upload an image.");
+    if (!mood) {
+      alert("Please enter your mood.");
       return;
     }
+
     try {
       setLoading(true);
-      const responses = [];
-      if (mood) {
-        const textRes = await axios.post("http://localhost:5000/analyse-text", {
-          mood,
-        });
-        responses.push({ from: "text", data: textRes.data });
+      setError(null);
+      setPlaylists([]);
+
+      // Step 1: Analyze text mood
+      const textRes = await analyzeMood(mood);
+      const detectedMood = textRes.data.emotion;
+      // const detectedMood = textRes.data.mapped_mood;
+      if (!detectedMood) {
+        throw new Error("No emotion detected.");
       }
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append("image", imageFile);
-        const imageRes = await axios.post(
-          "http://localhost:5000/analyse-image",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-        responses.push({ from: "image", data: imageRes.data });
-      }
-      setResult(responses);
-    } catch (error) {
-      console.error("Error analyzing mood:", error);
-      alert("An error occurred while analyzing your mood. Please try again.");
+      setDetectedMood(detectedMood);
+      // Step 2: Get playlists from backend based on emotion
+      const playlistRes = await getPlaylists(detectedMood);
+      setPlaylists(playlistRes.data);
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <button
-      className="bg-green-500 text-white font-semibold p-4 mt-4 rounded hover:bg-green-600 transition-all w-full max-w-md mx-auto"
-      onClick={handleMood}
-    >
-      🎶 Analyze My Mood
-    </button>
+    <div className="w-full max-w-4xl mx-auto">
+      <button
+        onClick={handleMood}
+        className="bg-green-500 text-white font-semibold p-4 mt-4 rounded hover:bg-green-600 transition-all w-full"
+      >
+        🎶 Analyze My Mood
+      </button>
+
+      {error && <p className="text-red-500 mt-4">{error}</p>}
+      {console.log("No errors so far")}
+      {!error && playlists.length > 0 && (
+        <div className="mt-6">
+          <PlaylistGrid playlists={playlists} />
+        </div>
+      )}
+      {console.log(playlists)}
+      {console.log("Playlists should be displaying now")}
+    </div>
   );
 }
